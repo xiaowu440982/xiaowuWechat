@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>xiaowu</title>
+    <style>
+        ul{
+            list-style-type:none;
+        }
+        .app{
+            width: 800px;
+            margin:120px auto 0;
+            background: orange;
+        }
+        .app:after{
+            content: '';
+            display: block;
+            clear:both;
+        }
+        .center{
+            text-align: center;
+        }
+        .li-left{
+            margin-top:20px;
+            background: green;
+            padding:5px;
+            color:white;
+            width: 250px;
+        }
+        .li-right{
+            margin-top:20px;
+            margin-left: 49%;
+            background: red;
+            padding:5px;
+            color:white;
+            width: 250px;
+        }
+        .fl{
+            float: left;
+        }
+        .fr{
+            float: right;
+        }
+        .left{
+            width: 200px;
+            background: green;
+        }
+        .left h3{
+            margin-left: 10px;
+            color:white;
+        }
+        .left h3{
+            margin-left: 10px;
+            color:white;
+        }
+        .left ul{
+            padding:0;
+        }
+        .left li{
+            padding: 10px 0;
+            color:white;
+            cursor: pointer;
+        }
+        .left li:after{
+            content: '';
+            display: block;
+            clear:both;
+        }
+        .left li:hover{
+            background: gray;
+            color:orange;
+        }
+        .left li img{
+            margin-left: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius:50%;
+        }
+        .left li span{
+            display: block;
+            margin-left: 8px;
+            height: 40px;
+            line-height: 40px;
+        }
+        .left .cur{
+            background: gray;
+            color:orange;
+        }
+
+
+        .right{
+            padding:20px 0;
+            width: 600px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app" id="vue-app">
+        <div class="left fl">
+
+            <h3>自己</h3>
+            <ul>
+                <li>
+                    <img class="fl" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1550223456381&di=7788e5d72d0e9e3f4ae681eb02bdc7f9&imgtype=0&src=http%3A%2F%2F5b0988e595225.cdn.sohucs.com%2Fimages%2F20190115%2Feb51602dc08248839d70b42a2ccb0fc0.jpeg" alt="">
+                    <span class="fl" v-text="userLst[userIndex].name"></span>
+                </li>
+            </ul>
+
+            <h3>用户</h3>
+            <ul>
+                <template v-for="(item, index) in userLst">
+                    <li :class="index == friendIndex ? 'cur' : ''" @click="selectUser(index)" v-if="index != userIndex">
+                        <img class="fl" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1550223456381&di=7788e5d72d0e9e3f4ae681eb02bdc7f9&imgtype=0&src=http%3A%2F%2F5b0988e595225.cdn.sohucs.com%2Fimages%2F20190115%2Feb51602dc08248839d70b42a2ccb0fc0.jpeg" alt="">
+                        <span class="fl" v-text="item.name"></span>
+                    </li>
+                </template>
+            </ul>
+
+            <h3>群</h3>
+            <ul>
+                <template v-for="(item, index) in groupLst">
+                    <li :class="index == groupIndex ? 'cur' : ''" @click="selectGroup(index)">
+                        <img class="fl" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1550223456381&di=7788e5d72d0e9e3f4ae681eb02bdc7f9&imgtype=0&src=http%3A%2F%2F5b0988e595225.cdn.sohucs.com%2Fimages%2F20190115%2Feb51602dc08248839d70b42a2ccb0fc0.jpeg" alt="">
+                        <span class="fl" v-text="item.name"></span>
+                    </li>
+                </template>
+            </ul>
+
+        </div>
+        <div class="right fr">
+            <div class="center">
+                <input type="button" @click="createSocket()" value="上线">
+                <input type="button" @click="closeSocket()" value="下线">
+                <input type="button" @click="readyStateSocket()" value="连接状态">
+                <input type="button" @click="bufferedAmountSocket()" value="队列">
+            </div>
+
+            <ul>
+                <template v-for="(item, index) in chatLog">
+                    <template v-if="item.msgType == 'private'">
+                        <li class="li-left" v-if="userLst[friendIndex] && item.sender == userLst[friendIndex].id">
+                            <p>信息：{{ item.msg }}</p>
+                            <p>时间：{{ item.time }}</p>
+                        </li>
+                        <li class="li-right" v-else-if="userLst[friendIndex] && item.sender == userLst[userIndex].id && item.recipient == userLst[friendIndex].id">
+                            <p>信息：{{ item.msg }}</p>
+                            <p>时间：{{ item.time }}</p>
+                        </li>
+                    </template>
+                    <template v-else-if="item.msgType == 'group'">
+                        <li class="li-left" v-if="groupLst[groupIndex] && item.sender != userLst[userIndex].id && item.recipient == groupLst[groupIndex].id">
+                            <p>发送者：{{ item.senderName }}</p>
+                            <p>信息：{{ item.msg }}</p>
+                            <p>时间：{{ item.time }}</p>
+                        </li>
+                        <li class="li-right" v-else-if="groupLst[groupIndex] && item.sender == userLst[userIndex].id && item.recipient == groupLst[groupIndex].id">
+                            <p>信息：{{ item.msg }}</p>
+                            <p>时间：{{ item.time }}</p>
+                        </li>
+                    </template>
+                </template>
+            </ul>
+            <div class="center">
+                <span>发送信息</span>
+                <input type="text" v-model="msg">
+                <input type="button" value="发送" @click="sendOut()" v-if="friendIndex != null">
+                <input type="button" value="发送" @click="groupSendOut()" v-else-if="groupIndex != null">
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+<script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+<script>
+    var userLst     = getHtml('{$userLst}');
+    var groupLst    = getHtml('{$groupLst}');
+    var userIndex   = parseInt('{$userIndex}');
+    var friendIndex = parseInt('{$friendIndex}');
+    userLst         = JSON.parse(userLst);
+    groupLst        = JSON.parse(groupLst);
+
+    new Vue({
+        el: '#vue-app',
+        data: {
+            userLst: userLst, // 用户列表
+            groupLst: groupLst, // 群列表
+            userIndex: userIndex, // 自己账号的index
+            friendIndex: friendIndex, // 当前发送消息用户的index
+            groupIndex: null, // 当前群index
+            msg: '', // 发送信息
+            chatLog: [], // 聊天日志
+        },
+
+        mounted: function () {
+
+        },
+
+        // watch:{
+        //     search: function(news, old){
+        //         console.log(news);
+        //         console.log(old);
+        //     }
+        // },
+
+        methods: {
+            // 发送信息
+            sendOut: function(){
+                var self = this;
+
+                var param = {
+                    'msg': this.msg,
+                    'recipient': this.userLst[this.friendIndex].id, // 接收者
+                };
+
+                $.post('/chatroom/index/send_message', param, function(info) {
+                    if(info.status == 0){
+                        alert(info.msg);
+                        return;
+                    }
+                    param.sender = self.userLst[self.userIndex].id;
+                    param.time = new Date().getTime();
+                    param.msgType = 'private';
+                    self.chatLog.push(param);
+                    self.msg = '';
+                }, 'json');
+            },
+
+            // 群发信息
+            groupSendOut: function(){
+                var self = this;
+
+                var param = {
+                    'msg': this.msg,
+                    'recipient': this.groupLst[this.groupIndex].id, // 接收群
+                };
+
+                $.post('/chatroom/index/group_send_message', param, function(info) {
+                    if(info.status == 0){
+                        alert(info.msg);
+                        return;
+                    }
+                    self.msg = '';
+                }, 'json');
+            },
+
+            // 切换用户
+            selectUser: function(index){
+                this.friendIndex = index;
+                if(this.groupIndex || this.groupIndex == 0){
+                    this.groupIndex = null;
+                }
+            },
+
+            // 切换群
+            selectGroup: function(index){
+                this.groupIndex = index;
+                if(this.friendIndex || this.friendIndex == 0){
+                    this.friendIndex = null;
+                }
+            },
+
+            // 创建socket连接
+            createSocket: function(){
+                var self = this;
+
+                if(!"WebSocket" in window){
+                    alert("您的浏览器不支持 WebSocket!");
+                    return false;
+                }
+
+                /**
+                 * 与GatewayWorker建立websocket连接，域名和端口改为你实际的域名端口，
+                 * 其中端口为Gateway端口，即start_gateway.php指定的端口。
+                 * start_gateway.php 中需要指定websocket协议，像这样
+                 * $gateway = new Gateway(websocket://0.0.0.0:8285);
+                 */
+                ws = new WebSocket("ws://" + document.domain + ":8285");
+
+                // 连接建立时触发
+                ws.onopen = function() {
+                    alert("连接成功");
+                };
+
+                // 服务端主动推送消息时会触发这里的onmessage
+                ws.onmessage = function(e){
+                    // json数据转换成js对象
+                    var data = eval("(" + e.data + ")");
+                    var type = data.type || '';
+                    console.log(data);
+                    switch(type){
+                        // Events.php中返回的init类型的消息，将client_id发给后台进行uid绑定
+                        case 'init':
+                            // 利用jquery发起ajax请求，将client_id发给后端进行uid绑定
+                            $.post('/chatroom/index/bind', {client_id: data.client_id}, function(data){}, 'json');
+                            break;
+                        // 心跳
+                        case 'ping':
+                            break;
+                        // 接收消息
+                        case 'receive':
+                            delete data.type;
+                            self.chatLog.push(data);
+                            break;
+                    }
+                };
+
+                // 连接关闭时触发
+                ws.onclose = function(){
+                    $.get('/chatroom/index/close', function(data) {}, 'json');
+                    alert("连接关闭时触发");
+                }
+
+                // 通信发生错误时触发
+                ws.onerror = function(){
+                    alert("通信发生错误时触发");
+                }
+            },
+
+            // 关闭连接
+            closeSocket: function(){
+                ws.close();
+            },
+
+            /**
+             * 只读属性 readyState 表示连接状态，可以是以下值：
+             * 0 - 表示连接尚未建立。
+             * 1 - 表示连接已建立，可以进行通信。
+             * 2 - 表示连接正在进行关闭。
+             * 3 - 表示连接已经关闭或者连接不能打开。
+             */
+            readyStateSocket: function(){
+                console.log(ws.readyState);
+            },
+
+            // 只读属性 bufferedAmount 已被 send() 放入正在队列中等待传输，但是还没有发出的 UTF-8 文本字节数。
+            bufferedAmountSocket: function(){
+                console.log(ws.bufferedAmount);
+            },
+
+            // init : function () {
+            //     var _this = this;
+            //     $.api.request("{:url('download/init')}").fail(this.failHandler).done(function (res) {
+            //         _this.info = res;
+            //     });
+            // }
+        },
+    });
+
+    // 将实体转回为HTML
+    function getHtml(str){
+        var elem = document.createElement('div');
+        elem.innerHTML = str;
+        return elem.innerText || elem.textContent;
+    }
+
+    // js原型 获取年日月 时分秒 对Date的扩展，将 Date 转化为指定格式的String
+    Date.prototype.getTime = function(){
+        var year    = this.getFullYear();
+        var month   = (this.getMonth() + 1) < 10 ? ('0' + (this.getMonth() + 1)) : (this.getMonth() + 1);
+        var date    = this.getDate() < 10 ? ('0' + this.getDate()) : this.getDate();
+        var hours   = this.getHours() < 10 ? ('0' + this.getHours()) : this.getHours();
+        var minutes = this.getMinutes() < 10 ? ('0' + this.getMinutes()) : this.getMinutes();
+        var seconds = this.getSeconds() < 10 ? ('0' + this.getSeconds()) : this.getSeconds();
+
+        var time = year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
+        return time;
+    }
+</script>
+
